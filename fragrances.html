@@ -261,6 +261,25 @@
   .tier .t-notes { font-size: 13.5px; color: #d7dae1; }
   mark { background: transparent; color: var(--gold-soft); font-weight: 600; border-bottom: 1px solid var(--gold); }
 
+  /* critic + user reviews */
+  .reviews { display: flex; flex-direction: column; gap: 13px; border-top: 1px solid var(--line); padding-top: 15px; }
+  .review { padding-left: 13px; border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
+  .review .rlabel { display: block; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; color: var(--gold-soft); margin-bottom: 5px; }
+  .review.r-user .rlabel { color: var(--air); }
+  .review p { margin: 0; font-size: 13px; line-height: 1.55; color: #c5cad4; }
+
+  /* price + check-latest */
+  .price-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 15px; }
+  .price .amount { font-family: var(--serif); font-size: 25px; font-weight: 600; color: var(--ink); line-height: 1; }
+  .price .amount.muted-amt { color: var(--faint); }
+  .price .price-meta { display: block; font-size: 11px; color: var(--faint); letter-spacing: .03em; margin-top: 4px; }
+  .check-price {
+    font-size: 12px; font-weight: 600; color: var(--gold-soft); text-decoration: none; white-space: nowrap;
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line-strong));
+    padding: 9px 13px; border-radius: 11px; transition: background .18s, border-color .18s, transform .18s;
+  }
+  .check-price:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); border-color: var(--accent); transform: translateY(-1px); }
+
   .facts { border-top: 1px solid var(--line); padding-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
   .fact { display: flex; flex-direction: column; gap: 2px; }
   .fact .k { color: var(--faint); font-size: 9.5px; text-transform: uppercase; letter-spacing: .14em; }
@@ -451,16 +470,85 @@ const COLS = {
   name:    ["name", "fragrance", "title"],
   house:   ["house", "brand", "maison"],
   type:    ["type", "category", "family", "concentration"],
+  size:    ["size", "volume", "ml", "bottle"],
   top:     ["top notes", "top", "head notes"],
   middle:  ["middle notes", "middle", "heart notes", "heart"],
   base:    ["base notes", "base", "dry down", "drydown"],
   rating:  ["rating", "score", "stars"],
-  price:   ["price range", "price", "cost"],
-  retailer:["retailer", "purchased from", "store", "seller"],
+  price:   ["best price", "price", "price range", "cost"],
+  retailer:["retailer", "best retailer", "store", "seller", "purchased from"],
+  pricedate:["price date", "as of", "priced", "price as of"],
+  critic:  ["critic review", "critic", "critics", "critic consensus", "critics take"],
+  user:    ["user review", "users", "user consensus", "wearers", "what wearers say"],
   date:    ["date purchased", "date", "purchased"],
-  notes:   ["notes", "comment", "comments", "remarks"]
+  notes:   ["notes", "comment", "comments", "remarks", "my notes"]
 };
 const ACCENTS = ["var(--earth)", "var(--sea)", "var(--air)", "var(--fire)"];
+
+/* Built-in collection — shown when no Google Sheet is connected.
+   (Notes from Fragrantica; prices are researched snapshots as of Jun 2026 —
+   use each card's "Check latest" button for live pricing.) */
+const FALLBACK_DATA = [
+  { name:"Coastal Cypress & Sea Fennel", house:"Molton Brown", type:"Eau de Toilette", size:"100ml",
+    top:"Fig Leaf, Cardamom, Bergamot", middle:"Sea Notes, Violet Leaf, Jasmine", base:"Cypress, Cedar, Musk",
+    price:"$130", retailer:"Molton Brown", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"Critics frame it as a polished, breezy coastal-woody: a green fig-and-cardamom opening drifting into airy marine and violet leaf over a soft cypress-cedar base. Widely praised as fresh, versatile and easy to wear — more 'effortlessly pleasant' than groundbreaking, with moderate projection.",
+    user:"Wearers love it as an easy spring/summer daily that reads clean and outdoorsy without turning sharp. The recurring gripe is performance — many find the EDT light and relatively short-lived (a few hours), and several note the EDP is denser but not dramatically different." },
+
+  { name:"Coastal Cypress & Sea Fennel", house:"Molton Brown", type:"Eau de Parfum", size:"100ml",
+    top:"Bergamot, Cardamom, Fig Leaf, Ginger", middle:"Cypress, Sea Notes, Olibanum, Jasmine", base:"Vetiver, Leather, Cedar, Musk",
+    price:"$160", retailer:"Molton Brown", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"The EDP reads as the 'serious' sibling — denser and more structured, trading some of the EDT's sunny nonchalance for a bolder, woodier, faintly incense-and-leather signature. Critics credit it with better depth and longevity, though a few feel it loses a little of the original's easygoing charm.",
+    user:"Fans appreciate the upgraded staying power and richer cypress-vetiver drydown, calling it more 'grown-up' and office-appropriate. Skeptics argue the gap over the EDT doesn't fully justify the premium, and a few find it a touch heavier than expected." },
+
+  { name:"Orange & Bergamot", house:"Molton Brown", type:"Eau de Toilette", size:"100ml",
+    top:"Orange, Bergamot, Mandarin, Lemon", middle:"Petitgrain, Cardamom, Galbanum", base:"Neroli, Ylang-Ylang, Musk",
+    price:"$84", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"A bright, juicy citrus cologne — a zesty orange-bergamot-lemon burst softened by petitgrain and a creamy neroli/ylang heart. Critics see a well-made, sunny crowd-pleaser that's 'citrus but not sharp,' a little soapy-creamy with surprising depth for the genre, if not especially original.",
+    user:"Wearers reach for it as a feel-good warm-weather citrus, and many praise above-average longevity and sillage for the category. A few find it leans soapy or fades to a generic clean-musk drydown, but overall sentiment is warm and uncomplicated." },
+
+  { name:"Wood Sage & Sea Salt", house:"Jo Malone London", type:"Cologne", size:"100ml",
+    top:"Ambrette Seeds (grapefruit-bright)", middle:"Sea Salt", base:"Sage",
+    price:"$170", retailer:"Jo Malone", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"A modern cult classic and one of the most influential 'beachy' minimalists — bright ambrette/grapefruit lift, a mineralic salt-spray accord and a dry, earthy sage. Critics admire its evocative windswept-coast effect and clean simplicity, while noting it's deliberately understated and light in concentration.",
+    user:"Adored as an easy unisex everyday signature that genuinely smells like sea air; layering is popular. The dominant complaint is strength — many report it fading within an hour or two and feel it's pricey for the performance." },
+
+  { name:"Cypress & Grapevine", house:"Jo Malone London", type:"Cologne Intense", size:"100ml",
+    top:"Cypress", middle:"Grapevine (cedar, vetiver)", base:"Amber",
+    price:"$200", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"From the richer Cologne Intense line, it's described as a clean, soapy-woody 'luxe barbershop' — resinous cypress and a cedar/vetiver-laced grapevine over warm amber. Critics call it sophisticated, dry and earthy, with noticeably better depth and longevity than the standard colognes, if a little austere.",
+    user:"Wearers who want Jo Malone with staying power are pleased — many report 6+ hours and a comforting, grown-up woody warmth. Some find it quieter or more linear than expected, and a few wish the grape facet read more clearly." },
+
+  { name:"Lime Basil & Mandarin", house:"Jo Malone London", type:"Cologne", size:"100ml",
+    top:"Lime, Mandarin, Bergamot", middle:"Basil, Lilac, Iris, Thyme", base:"Patchouli, Vetiver",
+    price:"$165", retailer:"Jo Malone", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"The house's signature debut (1999) and an enduring benchmark — a zesty lime-and-mandarin citrus given a sophisticated twist by peppery basil and thyme over light patchouli/vetiver. Critics regard it as a timeless, elegant, genuinely unisex modern classic.",
+    user:"Beloved for being crisp, fresh and refined without feeling generic, and often cited as one of the better-lasting/projecting scents in the line. Detractors still find the colognes overpriced for the concentration, but affection for the scent itself runs high." },
+
+  { name:"Silver Mountain Water", house:"Creed", type:"Eau de Parfum", size:"100ml",
+    top:"Bergamot, Mandarin", middle:"Green Tea, Blackcurrant", base:"Musk, Petitgrain, Sandalwood, Galbanum",
+    price:"$200", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"A landmark fresh fragrance — a luminous bergamot/mandarin top, a distinctive green-tea-and-blackcurrant heart and a clean musk/sandalwood base that reads like cool alpine air. Critics celebrate its airy 'clean luxury' signature and influence, while flagging soft projection and modest longevity.",
+    user:"Owners describe it as serene, smooth and effortlessly classy — a refined daytime/office fresh. The near-universal caveat is weak performance for the price (often 3–5 hours), and batch variation is a recurring topic." },
+
+  { name:"Green Irish Tweed", house:"Creed", type:"Eau de Parfum", size:"100ml",
+    top:"Lemon Verbena (Vervain), Bergamot", middle:"Violet Leaf, Geranium", base:"Ambergris, Sandalwood",
+    price:"$260", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"An icon of the green/fresh-fougère genre — sparkling lemon-verbena and bergamot over a powdery violet-leaf heart and a salty, effervescent ambergris-sandalwood base. Critics treat it as a timeless reference scent, tempered only by famously soft longevity and a high price.",
+    user:"Revered as elegant, versatile and 'always appropriate,' with the violet-leaf/ambergris drydown a particular favorite. The constant refrains: it doesn't last (often 3–4 hours), it's expensive, and many cheaper scents come close." },
+
+  { name:"Noble VII Queen Anne Rock Rose", house:"Clive Christian", type:"Parfum", size:"50ml",
+    top:"Bergamot, Neroli, Black Pepper", middle:"Lavender, Clary Sage, Violet, Labdanum", base:"Cacao, Vetiver, Amber, Patchouli",
+    price:"$350", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"A refined spicy-floral / oriental-fougère at full parfum strength — a peppered bergamot-neroli opening, an aromatic lavender-clary sage-violet heart and a labdanum, cacao and amber base. Critics praise its classy, room-filling elegance and quality, noting projection/longevity that can run merely 'good' for the lofty price.",
+    user:"Owners call it sophisticated, smooth and distinctly 'expensive-smelling,' well suited to formal wear. The main grumbles are inconsistent performance for a parfum and, above all, the price — most advise buying only at a steep discount." },
+
+  { name:"Aqua Universalis Cologne forte", house:"Maison Francis Kurkdjian", type:"Eau de Parfum", size:"70ml",
+    top:"Bergamot", middle:"Sweet Pea, Mock Orange", base:"White Musk",
+    price:"$155", retailer:"Maison Francis Kurkdjian", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    critic:"The 'forte' (EDP) take on MFK's pristine clean-skin signature — bright bergamot wrapped in diaphanous white florals (mock orange, sweet pea) over soft white musk. Critics describe it as immaculately clean and elegant, the closest thing to 'smelling like clean water and light,' with better tenacity than the lighter EDT.",
+    user:"Fans love it as a fresh, soft, universally flattering signature — clean without being boring and ideal for warm weather. The pushback: some find it too simple/'soap-and-water' for the price, and a few catch a faint laundry-musk vibe." }
+];
 
 let DATA = [];
 
@@ -508,9 +596,10 @@ function rowsToObjects(rows){
     const cells = rows[r];
     if (!cells || cells.every(c => (c || "").trim() === "")) continue;
     const get = k => (map[k] >= 0 && cells[map[k]] != null) ? cells[map[k]].trim() : "";
-    const obj = { name:get("name"), house:get("house"), type:get("type"), top:get("top"),
+    const obj = { name:get("name"), house:get("house"), type:get("type"), size:get("size"), top:get("top"),
       middle:get("middle"), base:get("base"), rating:get("rating"), price:get("price"),
-      retailer:get("retailer"), date:get("date"), notes:get("notes") };
+      retailer:get("retailer"), pricedate:get("pricedate"), critic:get("critic"), user:get("user"),
+      date:get("date"), notes:get("notes") };
     if (!obj.name && !obj.house) continue;
     out.push(obj);
   }
@@ -524,9 +613,11 @@ async function loadData(){
   const hint = document.getElementById("configHint");
 
   if (!id || id === "PASTE_YOUR_SHEET_ID_HERE"){
-    hint.style.display = "block";
-    hint.innerHTML = "No sheet connected yet. Open <strong>Connect a different Google Sheet</strong> at the bottom and paste your sheet URL, or edit <code>SHEET_ID</code> in this file. The sheet must be shared as <em>“Anyone with the link → Viewer.”</em>";
-    DATA = []; render(true); return;
+    hint.style.display = "none";
+    DATA = FALLBACK_DATA.slice();
+    populateTypeFilter(); render(true);
+    status.textContent = "Built-in collection · " + DATA.length + " fragrances";
+    return;
   }
   hint.style.display = "none";
   btn.classList.add("loading");
@@ -536,11 +627,14 @@ async function loadData(){
     if (!res.ok) throw new Error("HTTP " + res.status);
     const text = await res.text();
     if (text.trim().startsWith("<")) throw new Error("Sheet not public or tab name wrong.");
-    DATA = rowsToObjects(parseCSV(text));
+    const parsed = rowsToObjects(parseCSV(text));
+    DATA = parsed.length ? parsed : FALLBACK_DATA.slice();
     populateTypeFilter(); render(true);
     status.textContent = "Updated " + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   } catch (e){
-    status.className = "status error"; status.textContent = "Couldn’t load: " + e.message;
+    DATA = FALLBACK_DATA.slice();
+    populateTypeFilter(); render(true);
+    status.className = "status error"; status.textContent = "Sheet unavailable — showing built-in collection (" + e.message + ")";
   } finally { btn.classList.remove("loading"); }
 }
 
@@ -596,20 +690,35 @@ function getFiltered(){
   return { rows, sort, q, scope };
 }
 
+function checkPriceUrl(d){
+  const q = [d.house, d.name, d.size].filter(Boolean).join(" ");
+  return "https://www.google.com/search?tbm=shop&q=" + encodeURIComponent(q);
+}
+
 function cardHtml(d, q, scope, accentIdx){
   const hl = (t, layer) => {
     const shouldHl = q && (scope === "everything" || scope === "allnotes" || scope === layer);
     return shouldHl ? highlight(t, q) : escapeHtml(t);
   };
-  const facts = [];
-  if (d.price)    facts.push(['Price', escapeHtml(d.price)]);
-  if (d.retailer) facts.push(['Retailer', escapeHtml(d.retailer)]);
-  if (d.date)     facts.push(['Purchased', escapeHtml(d.date)]);
-  if (d.type)     facts.push(['Type', escapeHtml(d.type)]);
-
   const tier = (cls, label, val, layer) => val
     ? '<div class="tier '+cls+'"><span class="dot"></span><span class="t-name">'+label+'</span><span class="t-notes">'+hl(val, layer)+'</span></div>'
     : '';
+  const review = (cls, label, val) => val
+    ? '<div class="review '+cls+'"><span class="rlabel">'+label+'</span><p>'+escapeHtml(val)+'</p></div>'
+    : '';
+
+  const priceMeta = [d.size, d.retailer, d.pricedate].filter(Boolean).map(escapeHtml).join(' · ');
+  const priceRow =
+    '<div class="price-row">' +
+      '<div class="price">' +
+        (d.price ? '<span class="amount">'+escapeHtml(d.price)+'</span>' : '<span class="amount muted-amt">—</span>') +
+        (priceMeta ? '<span class="price-meta">'+priceMeta+'</span>' : '') +
+      '</div>' +
+      '<a class="check-price" href="'+checkPriceUrl(d)+'" target="_blank" rel="noopener" title="Search current prices">Check latest ↗</a>' +
+    '</div>';
+
+  const facts = [];
+  if (d.date) facts.push(['Purchased', escapeHtml(d.date)]);
 
   return '<article class="card" style="--accent:'+ACCENTS[accentIdx % ACCENTS.length]+'">' +
     '<div class="head"><div>' +
@@ -621,6 +730,10 @@ function cardHtml(d, q, scope, accentIdx){
         tier('t-top','Top', d.top, 'top') +
         tier('t-heart','Heart', d.middle, 'middle') +
         tier('t-base','Base', d.base, 'base') + '</div>' : '') +
+    ((d.critic||d.user) ? '<div class="reviews">' +
+        review('r-critic','Critics’ take', d.critic) +
+        review('r-user','What wearers say', d.user) + '</div>' : '') +
+    priceRow +
     (facts.length ? '<div class="facts">' + facts.map(f => '<div class="fact"><span class="k">'+f[0]+'</span><span class="v">'+f[1]+'</span></div>').join("") + '</div>' : '') +
     (d.notes ? '<p class="personal-note">' + escapeHtml(d.notes) + '</p>' : '') +
   '</article>';
