@@ -102,12 +102,8 @@
   }
   .hero-inner {
     position: relative; z-index: 2; height: 100%;
-    max-width: 1180px; margin: 0 auto; padding: 0 22px;
+    max-width: 1180px; margin: 0 auto; padding: 0 22px 30px;
     display: flex; flex-direction: column; justify-content: flex-end;
-  }
-  .hero-top {
-    position: absolute; top: 24px; left: 22px; right: 22px; z-index: 3;
-    display: flex; align-items: center; justify-content: space-between;
   }
   .element-label {
     color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .26em; text-transform: uppercase;
@@ -136,12 +132,15 @@
   }
   .hero .tagline {
     font-family: var(--serif); font-style: italic; font-size: clamp(16px, 2.4vw, 23px);
-    color: rgba(255,255,255,.82); margin: 14px 0 36px; max-width: 540px;
+    color: rgba(255,255,255,.82); margin: 14px 0 22px; max-width: 540px;
     opacity: 0; transform: translateY(18px); animation: rise 1s .5s ease forwards;
   }
   @keyframes rise { to { opacity: 1; transform: none; } }
-  .hero .refresh-float {
-    position: absolute; right: 22px; bottom: 26px; z-index: 3;
+
+  /* hero controls grouped under the title */
+  .hero-controls {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(16px); animation: rise 1s .66s ease forwards;
   }
 
   /* ---------- sticky glass toolbar ---------- */
@@ -178,15 +177,12 @@
     transition: background .18s, border-color .18s, transform .18s;
   }
   .btn:hover { background: rgba(255,255,255,.1); border-color: var(--gold); transform: translateY(-1px); }
-  .refresh-float {
-    background: rgba(12,16,22,.5); border: 1px solid rgba(255,255,255,.28);
-    color: #fff; backdrop-filter: blur(8px);
-  }
   .btn .spin { display: none; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.35); border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; }
   .btn.loading .spin { display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .meta-row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 4px 2px 26px; }
+  .meta-actions { display: flex; align-items: center; gap: 14px; }
   .section-title { font-family: var(--serif); font-size: 30px; font-weight: 600; letter-spacing: -.01em; }
   .section-title .count-num { color: var(--gold-soft); }
   .status { font-size: 12.5px; color: var(--muted); }
@@ -297,7 +293,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .scene, .scene.active .photo, .bg::before, .bg::after, .bg .glow,
-    .eyebrow, .hero h1, .hero .tagline, .card, .tier { animation: none !important; transition: opacity .2s !important; }
+    .eyebrow, .hero h1, .hero .tagline, .hero-controls, .card, .tier { animation: none !important; transition: opacity .2s !important; }
+    .eyebrow, .hero h1, .hero .tagline, .hero-controls { opacity: 1; transform: none; }
     .card { opacity: 1; transform: none; }
     .tier { opacity: 1; transform: none; }
   }
@@ -309,8 +306,8 @@
 
 <header class="hero" id="hero" aria-label="Featured imagery">
   <div class="hero-media">
-    <!-- LAND -->
-    <div class="scene active" data-name="Land">
+    <!-- EARTH -->
+    <div class="scene active" data-name="Earth">
       <svg viewBox="0 0 1100 280" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
         <defs><linearGradient id="landSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6e7c9"/><stop offset="0.55" stop-color="#e9c79a"/><stop offset="1" stop-color="#d9a06a"/></linearGradient></defs>
         <rect width="1100" height="280" fill="url(#landSky)"/>
@@ -321,8 +318,8 @@
       </svg>
       <div class="photo" style="background-image:url('images/land.webp'); background-position:center 72%"></div>
     </div>
-    <!-- SEA -->
-    <div class="scene" data-name="Sea">
+    <!-- WATER -->
+    <div class="scene" data-name="Water">
       <svg viewBox="0 0 1100 280" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="seaSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfeaf2"/><stop offset="1" stop-color="#9fd0e0"/></linearGradient>
@@ -362,20 +359,15 @@
 
   <div class="hero-scrim"></div>
 
-  <div class="hero-top">
-    <span class="element-label" id="elementLabel">Land</span>
-    <div class="hero-dots" id="heroDots"></div>
-  </div>
-
   <div class="hero-inner">
-    <p class="eyebrow">Land &middot; Sea &middot; Air &middot; Fire</p>
+    <p class="eyebrow">Earth &middot; Water &middot; Air &middot; Fire</p>
     <h1>Fragrance<br>Collection</h1>
     <p class="tagline" id="subtitle">A personal catalogue of scent — composed across the elements.</p>
+    <div class="hero-controls">
+      <span class="element-label" id="elementLabel">Earth</span>
+      <div class="hero-dots" id="heroDots"></div>
+    </div>
   </div>
-
-  <button class="btn refresh-float" id="refreshBtn" title="Reload from Google Sheet">
-    <span class="spin"></span><span class="label">Refresh</span>
-  </button>
 </header>
 
 <div class="toolbar-wrap">
@@ -415,7 +407,12 @@
 <div class="wrap">
   <div class="meta-row">
     <div class="section-title">The Collection <span class="count-num" id="count"></span></div>
-    <span class="status" id="status"></span>
+    <div class="meta-actions">
+      <span class="status" id="status"></span>
+      <button class="btn" id="refreshBtn" title="Reload from your Google Sheet">
+        <span class="spin"></span><span class="label">Update</span>
+      </button>
+    </div>
   </div>
 
   <div id="configHint" class="config-hint" style="display:none"></div>
@@ -435,7 +432,7 @@
     <p class="status" style="margin-top:10px">The sheet must be shared as “Anyone with the link → Viewer.” Saved in this browser only.</p>
   </details>
 
-  <footer>Land · Sea · Air · Fire — a living catalogue, drawn from your Google Sheet. <span id="updated"></span></footer>
+  <footer>Earth · Water · Air · Fire — a living catalogue, drawn from your Google Sheet. <span id="updated"></span></footer>
 </div>
 
 <script>
