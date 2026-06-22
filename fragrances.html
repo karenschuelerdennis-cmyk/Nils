@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fragrance Collection</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #111827;
+    --chip: #f3f4f6;
+    --top: #b45309;
+    --middle: #7c3aed;
+    --base: #0f766e;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  /* ---------- Rotating elemental hero ---------- */
+  .hero {
+    position: relative;
+    height: 280px;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 26px;
+    box-shadow: var(--shadow);
+    background: #0b1020;
+  }
+  @media (max-width: 600px) { .hero { height: 220px; } }
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+    will-change: opacity;
+  }
+  .scene.active { opacity: 1; }
+  .scene svg { width: 100%; height: 100%; display: block; }
+  /* photo sits on top of the SVG; if the image is missing, the SVG shows through */
+  .scene .photo {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    background-repeat: no-repeat;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 26px 30px;
+    background: linear-gradient(to top, rgba(8,10,20,.68) 0%, rgba(8,10,20,.28) 42%, rgba(8,10,20,.05) 72%, rgba(8,10,20,.15) 100%);
+    pointer-events: none;
+  }
+  .hero-overlay h1 { color: #fff; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 0; text-shadow: 0 2px 18px rgba(0,0,0,.35); }
+  .hero-overlay .subtitle { color: rgba(255,255,255,.85); font-size: 14px; margin-top: 4px; text-shadow: 0 1px 10px rgba(0,0,0,.35); }
+  .hero-top {
+    position: absolute;
+    top: 16px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 3;
+  }
+  .element-label {
+    color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+    background: rgba(255,255,255,.14); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 5px 12px;
+    text-shadow: 0 1px 6px rgba(0,0,0,.3);
+  }
+  .hero-dots { display: flex; gap: 8px; pointer-events: auto; }
+  .hero-dots button {
+    width: 8px; height: 8px; border-radius: 50%; padding: 0; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.7); background: transparent; transition: background .2s, transform .2s;
+  }
+  .hero-dots button.on { background: #fff; transform: scale(1.25); }
+  .hero .refresh-float {
+    position: absolute; right: 18px; bottom: 18px; z-index: 3;
+    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3); color: #fff; backdrop-filter: blur(6px);
+  }
+  .hero .refresh-float:hover { background: rgba(255,255,255,.28); }
+  @media (prefers-reduced-motion: reduce) { .scene { transition: none; } }
+
+  header.page { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+  .subtitle { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr auto;
+    gap: 10px;
+    margin: 22px 0 8px;
+    align-items: center;
+  }
+  @media (max-width: 760px) { .toolbar { grid-template-columns: 1fr 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  input[type="search"], select, input[type="text"] {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    width: 100%;
+  }
+  input:focus, select:focus { border-color: #9ca3af; box-shadow: 0 0 0 3px rgba(17,24,39,.06); }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #f3f4f6; }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { background: #000; }
+  .btn .spin { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+  .btn.loading .spin { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .meta-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 10px 0 18px; }
+  .count { color: var(--muted); font-size: 13px; }
+  .status { font-size: 13px; color: var(--muted); }
+  .status.error { color: #b91c1c; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+  .group-label { grid-column: 1 / -1; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 14px 2px 0; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .card .name { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  .card .house { color: var(--muted); font-size: 13px; margin: 1px 0 0; }
+  .type-chip { font-size: 11px; font-weight: 600; color: #374151; background: var(--chip); border: 1px solid var(--line); padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+
+  .rating { display: inline-flex; gap: 1px; font-size: 13px; color: #d1d5db; }
+  .rating .on { color: #f59e0b; }
+
+  .notes-block { display: flex; flex-direction: column; gap: 7px; }
+  .note-line { font-size: 13px; display: flex; gap: 8px; }
+  .note-tag { flex: 0 0 54px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding-top: 2px; }
+  .note-tag.top { color: var(--top); }
+  .note-tag.middle { color: var(--middle); }
+  .note-tag.base { color: var(--base); }
+  .note-vals { color: #374151; }
+  mark { background: #fde68a; color: inherit; border-radius: 3px; padding: 0 1px; }
+
+  .facts { border-top: 1px solid var(--line); padding-top: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font-size: 12.5px; }
+  .fact { display: flex; flex-direction: column; }
+  .fact .k { color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .fact .v { color: var(--ink); }
+  .personal-note { font-size: 13px; color: #4b5563; font-style: italic; border-top: 1px solid var(--line); padding-top: 10px; }
+
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; border: 1px dashed var(--line); border-radius: var(--radius); grid-column: 1 / -1; }
+
+  footer { margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center; }
+  .config-hint { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 14px 16px; border-radius: 12px; font-size: 13px; margin: 18px 0; }
+  .config-hint code { background: #fef3c7; padding: 1px 5px; border-radius: 4px; }
+  details.settings { margin-top: 14px; }
+  details.settings summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+  .settings-body { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .settings-body .field { flex: 1 1 320px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero" id="hero" aria-label="Featured imagery">
+    <!-- LAND -->
+    <div class="scene active" data-name="Land">
+      <svg viewBox="0 0 1100 280" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="landSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f6e7c9"/><stop offset="0.55" stop-color="#e9c79a"/><stop offset="1" stop-color="#d9a06a"/>
+          </linearGradient>
+        </defs>
+        <rect width="1100" height="280" fill="url(#landSky)"/>
+        <circle cx="840" cy="92" r="46" fill="#f7d488" opacity="0.85"/>
+        <path d="M0 200 L160 150 L320 188 L480 138 L660 196 L820 150 L1000 200 L1100 168 L1100 280 L0 280 Z" fill="#a9743f" opacity="0.55"/>
+        <path d="M0 226 L180 196 L360 230 L560 188 L760 232 L960 200 L1100 234 L1100 280 L0 280 Z" fill="#7c5230"/>
+        <path d="M0 252 L220 232 L470 256 L720 230 L980 258 L1100 244 L1100 280 L0 280 Z" fill="#5a3a20"/>
+      </svg>
+      <div class="photo" style="background-image:url('images/land.webp'); background-position:center 72%"></div>
+    </div>
+    <!-- SEA -->
+    <div class="scene" data-name="Sea">
+      <svg viewBox="0 0 1100 280" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="seaSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#cfeaf2"/><stop offset="1" stop-color="#9fd0e0"/>
+          </linearGradient>
+          <linearGradient id="seaWater" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3aa0c4"/><stop offset="1" stop-color="#0d4f74"/>
+          </linearGradient>
+        </defs>
+        <rect width="1100" height="120" fill="url(#seaSky)"/>
+        <circle cx="250" cy="70" r="38" fill="#f3f7d9" opacity="0.7"/>
+        <rect y="118" width="1100" height="162" fill="url(#seaWater)"/>
+        <path d="M0 140 Q140 120 280 140 T560 140 T840 140 T1120 140 V200 H0 Z" fill="#2f93b8" opacity="0.6"/>
+        <path d="M0 168 Q160 146 320 168 T640 168 T960 168 T1280 168 V230 H0 Z" fill="#1c719a" opacity="0.7"/>
+        <path d="M0 200 Q180 178 360 200 T720 200 T1080 200 V280 H0 Z" fill="#0f5a82"/>
+        <g fill="#ffffff" opacity="0.5">
+          <ellipse cx="180" cy="150" rx="26" ry="3"/><ellipse cx="520" cy="160" rx="34" ry="3"/><ellipse cx="860" cy="150" rx="28" ry="3"/>
+        </g>
+      </svg>
+      <div class="photo" style="background-image:url('images/sea.webp'); background-position:center 58%"></div>
+    </div>
+    <!-- AIR -->
+    <div class="scene" data-name="Air">
+      <svg viewBox="0 0 1100 280" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="airSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8ec5ff"/><stop offset="0.6" stop-color="#bfe0ff"/><stop offset="1" stop-color="#eaf6ff"/>
+          </linearGradient>
+        </defs>
+        <rect width="1100" height="280" fill="url(#airSky)"/>
+        <circle cx="900" cy="80" r="40" fill="#fff7e0" opacity="0.9"/>
+        <g fill="#ffffff">
+          <g opacity="0.95"><ellipse cx="240" cy="120" rx="80" ry="34"/><ellipse cx="320" cy="110" rx="64" ry="40"/><ellipse cx="180" cy="132" rx="56" ry="28"/></g>
+          <g opacity="0.8"><ellipse cx="700" cy="180" rx="96" ry="38"/><ellipse cx="800" cy="172" rx="70" ry="44"/><ellipse cx="620" cy="190" rx="60" ry="30"/></g>
+          <g opacity="0.7"><ellipse cx="470" cy="70" rx="54" ry="22"/><ellipse cx="520" cy="64" rx="40" ry="26"/></g>
+        </g>
+        <g stroke="#5b7aa0" stroke-width="3" fill="none" opacity="0.55" stroke-linecap="round">
+          <path d="M420 150 q14 -14 28 0 q14 -14 28 0"/><path d="M540 120 q12 -12 24 0 q12 -12 24 0"/>
+        </g>
+      </svg>
+      <div class="photo" style="background-image:url('images/air.webp'); background-position:center 38%"></div>
+    </div>
+    <!-- FIRE -->
+    <div class="scene" data-name="Fire">
+      <svg viewBox="0 0 1100 280" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="fireBg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2a0a06"/><stop offset="0.6" stop-color="#7a1d09"/><stop offset="1" stop-color="#c8410c"/>
+          </linearGradient>
+          <radialGradient id="fireGlow" cx="0.5" cy="1" r="0.9">
+            <stop offset="0" stop-color="#ffd166"/><stop offset="0.4" stop-color="#f9701f"/><stop offset="1" stop-color="#f9701f" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="1100" height="280" fill="url(#fireBg)"/>
+        <rect width="1100" height="280" fill="url(#fireGlow)" opacity="0.85"/>
+        <g fill="#ffb347" opacity="0.9">
+          <path d="M300 280 C270 220 330 210 320 160 C360 200 350 250 380 280 Z"/>
+          <path d="M560 280 C520 200 600 190 580 120 C640 180 620 250 660 280 Z"/>
+          <path d="M820 280 C790 225 845 215 835 168 C872 205 862 252 892 280 Z"/>
+        </g>
+        <g fill="#ffe08a" opacity="0.95">
+          <path d="M575 280 C552 220 600 214 588 168 C622 208 610 250 636 280 Z"/>
+        </g>
+        <g fill="#fff2c2">
+          <circle cx="420" cy="120" r="2.5"/><circle cx="660" cy="90" r="2"/><circle cx="520" cy="70" r="1.8"/>
+          <circle cx="760" cy="130" r="2.2"/><circle cx="300" cy="150" r="1.6"/><circle cx="880" cy="110" r="1.8"/>
+        </g>
+      </svg>
+      <div class="photo" style="background-image:url('images/fire.jpg'); background-position:left 56%"></div>
+    </div>
+
+    <div class="hero-top">
+      <span class="element-label" id="elementLabel">Land</span>
+      <div class="hero-dots" id="heroDots"></div>
+    </div>
+    <div class="hero-overlay">
+      <h1>Fragrance Collection</h1>
+      <p class="subtitle" id="subtitle">A personal catalogue</p>
+    </div>
+    <button class="btn refresh-float" id="refreshBtn" title="Reload from Google Sheet">
+      <span class="spin"></span>
+      <span class="label">Refresh</span>
+    </button>
+  </section>
+
+  <div class="toolbar">
+    <div class="field">
+      <label for="search">Search notes</label>
+      <input type="search" id="search" placeholder="e.g. bergamot, vetiver, vanilla…" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="scope">Search in</label>
+      <select id="scope">
+        <option value="allnotes">All notes</option>
+        <option value="top">Top notes</option>
+        <option value="middle">Middle notes</option>
+        <option value="base">Base notes</option>
+        <option value="everything">Everything (name, house, notes)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="sort">Sort</label>
+      <select id="sort">
+        <option value="name-asc">Name (A–Z)</option>
+        <option value="name-desc">Name (Z–A)</option>
+        <option value="type">Type, then name</option>
+        <option value="house">House, then name</option>
+        <option value="rating-desc">Rating (high–low)</option>
+        <option value="date-desc">Date purchased (newest)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="typeFilter">Type</label>
+      <select id="typeFilter"><option value="">All types</option></select>
+    </div>
+  </div>
+
+  <div class="meta-row">
+    <span class="count" id="count"></span>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div id="configHint" class="config-hint" style="display:none"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <details class="settings">
+    <summary>Settings — connect a different Google Sheet</summary>
+    <div class="settings-body">
+      <div class="field">
+        <label for="sheetInput">Google Sheet ID or URL</label>
+        <input type="text" id="sheetInput" placeholder="Paste the sheet URL or its ID" />
+      </div>
+      <button class="btn" id="saveSheet">Save &amp; load</button>
+      <button class="btn" id="clearSheet">Reset to default</button>
+    </div>
+    <p class="subtitle" style="margin-top:8px">The sheet must be shared as “Anyone with the link → Viewer.” Saved in this browser only.</p>
+  </details>
+
+  <footer>
+    Built as a static page — data lives in your Google Sheet. <span id="updated"></span>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — set your Google Sheet here (or use the Settings panel)
+   1) Open your Google Sheet → Share → "Anyone with the link" = Viewer
+   2) Copy the part of the URL between /d/ and /edit  → that's the SHEET_ID
+   3) Paste it below (or via the Settings panel on the page)
+   The TAB_NAME must match the sheet tab containing your data.
+   ============================================================ */
+const CONFIG = {
+  SHEET_ID: "PASTE_YOUR_SHEET_ID_HERE",
+  TAB_NAME: "Fragrances"
+};
+
+/* Expected column headers in your sheet (row 1), case-insensitive:
+   Name | House | Type | Top Notes | Middle Notes | Base Notes |
+   Rating | Price Range | Retailer | Date Purchased | Notes        */
+
+const COLS = {
+  name:    ["name", "fragrance", "title"],
+  house:   ["house", "brand", "maison"],
+  type:    ["type", "category", "family", "concentration"],
+  top:     ["top notes", "top", "head notes"],
+  middle:  ["middle notes", "middle", "heart notes", "heart"],
+  base:    ["base notes", "base", "dry down", "drydown"],
+  rating:  ["rating", "score", "stars"],
+  price:   ["price range", "price", "cost"],
+  retailer:["retailer", "purchased from", "store", "seller"],
+  date:    ["date purchased", "date", "purchased"],
+  notes:   ["notes", "comment", "comments", "remarks"]
+};
+
+let DATA = [];
+
+function getSheetId() {
+  return localStorage.getItem("frag_sheet_id") || CONFIG.SHEET_ID;
+}
+function gvizUrl(id, tab) {
+  const base = "https://docs.google.com/spreadsheets/d/" + encodeURIComponent(id) +
+               "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(tab);
+  return base + "&_=" + Date.now(); // cache-bust on refresh
+}
+function parseSheetId(input) {
+  if (!input) return "";
+  const m = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (m) return m[1];
+  return input.trim();
+}
+
+/* --- robust CSV parser (handles quotes, commas, newlines) --- */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", i = 0, inQ = false;
+  while (i < text.length) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') {
+        if (text[i+1] === '"') { field += '"'; i += 2; continue; }
+        inQ = false; i++; continue;
+      }
+      field += c; i++; continue;
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === ',') { row.push(field); field = ""; i++; continue; }
+    if (c === '\r') { i++; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
+    field += c; i++;
+  }
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function indexHeaders(headerRow) {
+  const map = {};
+  const lower = headerRow.map(h => (h || "").trim().toLowerCase());
+  for (const key in COLS) {
+    let found = -1;
+    for (const alias of COLS[key]) {
+      const idx = lower.indexOf(alias);
+      if (idx !== -1) { found = idx; break; }
+    }
+    map[key] = found;
+  }
+  return map;
+}
+
+function rowsToObjects(rows) {
+  if (!rows.length) return [];
+  const map = indexHeaders(rows[0]);
+  const out = [];
+  for (let r = 1; r < rows.length; r++) {
+    const cells = rows[r];
+    if (!cells || cells.every(c => (c || "").trim() === "")) continue;
+    const get = k => (map[k] >= 0 && cells[map[k]] != null) ? cells[map[k]].trim() : "";
+    const obj = {
+      name: get("name"), house: get("house"), type: get("type"),
+      top: get("top"), middle: get("middle"), base: get("base"),
+      rating: get("rating"), price: get("price"),
+      retailer: get("retailer"), date: get("date"), notes: get("notes")
+    };
+    if (!obj.name && !obj.house) continue;
+    out.push(obj);
+  }
+  return out;
+}
+
+async function loadData() {
+  const id = getSheetId();
+  const btn = document.getElementById("refreshBtn");
+  const status = document.getElementById("status");
+  const hint = document.getElementById("configHint");
+
+  if (!id || id === "PASTE_YOUR_SHEET_ID_HERE") {
+    hint.style.display = "block";
+    hint.innerHTML = "No sheet connected yet. Open <strong>Settings</strong> below and paste your Google Sheet URL, " +
+                     "or edit the <code>SHEET_ID</code> in this file. The sheet must be shared as " +
+                     "<em>“Anyone with the link → Viewer.”</em>";
+    DATA = [];
+    render();
+    return;
+  }
+  hint.style.display = "none";
+  btn.classList.add("loading");
+  status.className = "status";
+  status.textContent = "Loading…";
+  try {
+    const res = await fetch(gvizUrl(id, CONFIG.TAB_NAME), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    if (text.trim().startsWith("<")) {
+      throw new Error("Sheet not public or tab name wrong. Share as 'Anyone with the link' and check the tab name.");
+    }
+    DATA = rowsToObjects(parseCSV(text));
+    populateTypeFilter();
+    render();
+    status.textContent = "Updated " + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  } catch (e) {
+    status.className = "status error";
+    status.textContent = "Couldn’t load: " + e.message;
+  } finally {
+    btn.classList.remove("loading");
+  }
+}
+
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function highlight(text, q) {
+  const safe = escapeHtml(text);
+  if (!q) return safe;
+  try {
+    const re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
+    return safe.replace(re, "<mark>$1</mark>");
+  } catch { return safe; }
+}
+
+function ratingStars(val) {
+  const n = Math.max(0, Math.min(5, Math.round(parseFloat(val) || 0)));
+  if (!n) return "";
+  let s = '<span class="rating" title="' + n + '/5">';
+  for (let i = 1; i <= 5; i++) s += '<span class="' + (i <= n ? "on" : "") + '">★</span>';
+  return s + "</span>";
+}
+
+function populateTypeFilter() {
+  const sel = document.getElementById("typeFilter");
+  const current = sel.value;
+  const types = [...new Set(DATA.map(d => d.type).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML = '<option value="">All types</option>' +
+    types.map(t => '<option value="'+escapeHtml(t)+'">'+escapeHtml(t)+'</option>').join("");
+  if (types.includes(current)) sel.value = current;
+}
+
+function getFiltered() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const scope = document.getElementById("scope").value;
+  const typeF = document.getElementById("typeFilter").value;
+
+  let rows = DATA.slice();
+  if (typeF) rows = rows.filter(d => d.type === typeF);
+
+  if (q) {
+    rows = rows.filter(d => {
+      let hay = "";
+      if (scope === "top") hay = d.top;
+      else if (scope === "middle") hay = d.middle;
+      else if (scope === "base") hay = d.base;
+      else if (scope === "allnotes") hay = [d.top, d.middle, d.base].join(" ");
+      else hay = [d.name, d.house, d.type, d.top, d.middle, d.base, d.notes, d.retailer].join(" ");
+      return hay.toLowerCase().includes(q);
+    });
+  }
+
+  const sort = document.getElementById("sort").value;
+  const byName = (a,b) => (a.name||"").localeCompare(b.name||"", undefined, {sensitivity:"base"});
+  const sorters = {
+    "name-asc": byName,
+    "name-desc": (a,b) => byName(b,a),
+    "type": (a,b) => (a.type||"￿").localeCompare(b.type||"￿") || byName(a,b),
+    "house": (a,b) => (a.house||"￿").localeCompare(b.house||"￿") || byName(a,b),
+    "rating-desc": (a,b) => ((parseFloat(b.rating)||0)-(parseFloat(a.rating)||0)) || byName(a,b),
+    "date-desc": (a,b) => (Date.parse(b.date)||0)-(Date.parse(a.date)||0) || byName(a,b)
+  };
+  rows.sort(sorters[sort] || byName);
+  return { rows, sort, q, scope };
+}
+
+function cardHtml(d, q, scope) {
+  const hl = (t, layer) => {
+    const shouldHl = q && (scope === "everything" || scope === "allnotes" || scope === layer);
+    return shouldHl ? highlight(t, q) : escapeHtml(t);
+  };
+  const facts = [];
+  if (d.price)    facts.push(['Price', escapeHtml(d.price)]);
+  if (d.retailer) facts.push(['Retailer', escapeHtml(d.retailer)]);
+  if (d.date)     facts.push(['Purchased', escapeHtml(d.date)]);
+  if (d.type)     facts.push(['Type', escapeHtml(d.type)]);
+
+  const noteLine = (label, cls, val, layer) => val
+    ? '<div class="note-line"><span class="note-tag '+cls+'">'+label+'</span><span class="note-vals">'+hl(val, layer)+'</span></div>'
+    : '';
+
+  return '<article class="card">' +
+    '<div class="head">' +
+      '<div>' +
+        '<h2 class="name">' + (q && (scope==="everything") ? highlight(d.name,q) : escapeHtml(d.name)) + '</h2>' +
+        (d.house ? '<p class="house">' + (q && scope==="everything" ? highlight(d.house,q) : escapeHtml(d.house)) + '</p>' : '') +
+      '</div>' +
+      (d.type ? '<span class="type-chip">' + escapeHtml(d.type) + '</span>' : '') +
+    '</div>' +
+    (d.rating ? '<div>' + ratingStars(d.rating) + '</div>' : '') +
+    ((d.top||d.middle||d.base) ?
+      '<div class="notes-block">' +
+        noteLine('Top','top', d.top, 'top') +
+        noteLine('Heart','middle', d.middle, 'middle') +
+        noteLine('Base','base', d.base, 'base') +
+      '</div>' : '') +
+    (facts.length ? '<div class="facts">' + facts.map(f =>
+      '<div class="fact"><span class="k">'+f[0]+'</span><span class="v">'+f[1]+'</span></div>').join("") + '</div>' : '') +
+    (d.notes ? '<p class="personal-note">' + escapeHtml(d.notes) + '</p>' : '') +
+  '</article>';
+}
+
+function render() {
+  const grid = document.getElementById("grid");
+  const count = document.getElementById("count");
+  const { rows, sort, q, scope } = getFiltered();
+
+  count.textContent = rows.length + (rows.length === 1 ? " fragrance" : " fragrances") +
+    (DATA.length && rows.length !== DATA.length ? " of " + DATA.length : "");
+
+  if (!rows.length) {
+    grid.innerHTML = '<div class="empty">' +
+      (DATA.length ? "No fragrances match your search." : "No data yet — connect your sheet or add rows.") +
+      '</div>';
+    return;
+  }
+
+  let html = "";
+  if (sort === "type") {
+    let lastGroup = null;
+    for (const d of rows) {
+      const g = d.type || "Uncategorised";
+      if (g !== lastGroup) { html += '<div class="group-label">' + escapeHtml(g) + '</div>'; lastGroup = g; }
+      html += cardHtml(d, q, scope);
+    }
+  } else {
+    html = rows.map(d => cardHtml(d, q, scope)).join("");
+  }
+  grid.innerHTML = html;
+}
+
+/* --- events --- */
+["search","scope","sort","typeFilter"].forEach(id =>
+  document.getElementById(id).addEventListener("input", render));
+document.getElementById("refreshBtn").addEventListener("click", loadData);
+
+document.getElementById("saveSheet").addEventListener("click", () => {
+  const id = parseSheetId(document.getElementById("sheetInput").value);
+  if (id) { localStorage.setItem("frag_sheet_id", id); loadData(); }
+});
+document.getElementById("clearSheet").addEventListener("click", () => {
+  localStorage.removeItem("frag_sheet_id");
+  document.getElementById("sheetInput").value = "";
+  loadData();
+});
+
+/* prefill settings input with saved id */
+(function(){
+  const saved = localStorage.getItem("frag_sheet_id");
+  if (saved) document.getElementById("sheetInput").value = saved;
+})();
+
+/* --- rotating elemental hero --- */
+(function heroRotator(){
+  const hero = document.getElementById("hero");
+  if (!hero) return;
+  const scenes = [...hero.querySelectorAll(".scene")];
+  const label = document.getElementById("elementLabel");
+  const dotsBox = document.getElementById("heroDots");
+  let idx = 0, timer = null;
+  const INTERVAL = 5000;
+
+  scenes.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.setAttribute("aria-label", "Show " + s.dataset.name);
+    b.className = i === 0 ? "on" : "";
+    b.addEventListener("click", () => { go(i); restart(); });
+    dotsBox.appendChild(b);
+  });
+  const dots = [...dotsBox.children];
+
+  function go(n){
+    idx = (n + scenes.length) % scenes.length;
+    scenes.forEach((s,i) => s.classList.toggle("active", i === idx));
+    dots.forEach((d,i) => d.classList.toggle("on", i === idx));
+    if (label) label.textContent = scenes[idx].dataset.name;
+  }
+  function next(){ go(idx + 1); }
+  function start(){ timer = setInterval(next, INTERVAL); }
+  function restart(){ clearInterval(timer); start(); }
+
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce) start();
+  hero.addEventListener("mouseenter", () => clearInterval(timer));
+  hero.addEventListener("mouseleave", () => { if (!reduce) restart(); });
+})();
+
+loadData();
+</script>
+</body>
+</html>
