@@ -266,7 +266,11 @@
   .review { padding-left: 13px; border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
   .review .rlabel { display: block; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; color: var(--gold-soft); margin-bottom: 5px; }
   .review.r-user .rlabel { color: var(--air); }
+  .review.r-nils { border-left-color: var(--gold); }
+  .review.r-nils .rlabel { color: var(--gold); }
+  .review.r-nils p { font-family: var(--serif); font-style: italic; font-size: 14.5px; color: #d8dbe2; }
   .review p { margin: 0; font-size: 13px; line-height: 1.55; color: #c5cad4; }
+  .nils-placeholder { color: var(--faint) !important; }
 
   /* price + check-latest */
   .price-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 15px; }
@@ -481,7 +485,7 @@ const COLS = {
   critic:  ["critic review", "critic", "critics", "critic consensus", "critics take"],
   user:    ["user review", "users", "user consensus", "wearers", "what wearers say"],
   date:    ["date purchased", "date", "purchased"],
-  notes:   ["notes", "comment", "comments", "remarks", "my notes"]
+  nils:    ["what nils says", "nils says", "nils", "my take", "my review", "my notes", "notes", "comment", "comments"]
 };
 const ACCENTS = ["var(--earth)", "var(--sea)", "var(--air)", "var(--fire)"];
 
@@ -491,63 +495,87 @@ const ACCENTS = ["var(--earth)", "var(--sea)", "var(--air)", "var(--fire)"];
 const FALLBACK_DATA = [
   { name:"Coastal Cypress & Sea Fennel", house:"Molton Brown", type:"Eau de Toilette", size:"100ml",
     top:"Fig Leaf, Cardamom, Bergamot", middle:"Sea Notes, Violet Leaf, Jasmine", base:"Cypress, Cedar, Musk",
-    price:"$130", retailer:"Molton Brown", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$130", retailer:"Molton Brown", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"Critics frame it as a polished, breezy coastal-woody: a green fig-and-cardamom opening drifting into airy marine and violet leaf over a soft cypress-cedar base. Widely praised as fresh, versatile and easy to wear — more 'effortlessly pleasant' than groundbreaking, with moderate projection.",
     user:"Wearers love it as an easy spring/summer daily that reads clean and outdoorsy without turning sharp. The recurring gripe is performance — many find the EDT light and relatively short-lived (a few hours), and several note the EDP is denser but not dramatically different." },
 
   { name:"Coastal Cypress & Sea Fennel", house:"Molton Brown", type:"Eau de Parfum", size:"100ml",
     top:"Bergamot, Cardamom, Fig Leaf, Ginger", middle:"Cypress, Sea Notes, Olibanum, Jasmine", base:"Vetiver, Leather, Cedar, Musk",
-    price:"$160", retailer:"Molton Brown", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$160", retailer:"Molton Brown", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"The EDP reads as the 'serious' sibling — denser and more structured, trading some of the EDT's sunny nonchalance for a bolder, woodier, faintly incense-and-leather signature. Critics credit it with better depth and longevity, though a few feel it loses a little of the original's easygoing charm.",
     user:"Fans appreciate the upgraded staying power and richer cypress-vetiver drydown, calling it more 'grown-up' and office-appropriate. Skeptics argue the gap over the EDT doesn't fully justify the premium, and a few find it a touch heavier than expected." },
 
   { name:"Orange & Bergamot", house:"Molton Brown", type:"Eau de Toilette", size:"100ml",
     top:"Orange, Bergamot, Mandarin, Lemon", middle:"Petitgrain, Cardamom, Galbanum", base:"Neroli, Ylang-Ylang, Musk",
-    price:"$84", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$84", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"A bright, juicy citrus cologne — a zesty orange-bergamot-lemon burst softened by petitgrain and a creamy neroli/ylang heart. Critics see a well-made, sunny crowd-pleaser that's 'citrus but not sharp,' a little soapy-creamy with surprising depth for the genre, if not especially original.",
     user:"Wearers reach for it as a feel-good warm-weather citrus, and many praise above-average longevity and sillage for the category. A few find it leans soapy or fades to a generic clean-musk drydown, but overall sentiment is warm and uncomplicated." },
 
   { name:"Wood Sage & Sea Salt", house:"Jo Malone London", type:"Cologne", size:"100ml",
     top:"Ambrette Seeds (grapefruit-bright)", middle:"Sea Salt", base:"Sage",
-    price:"$170", retailer:"Jo Malone", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$170", retailer:"Jo Malone", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"A modern cult classic and one of the most influential 'beachy' minimalists — bright ambrette/grapefruit lift, a mineralic salt-spray accord and a dry, earthy sage. Critics admire its evocative windswept-coast effect and clean simplicity, while noting it's deliberately understated and light in concentration.",
     user:"Adored as an easy unisex everyday signature that genuinely smells like sea air; layering is popular. The dominant complaint is strength — many report it fading within an hour or two and feel it's pricey for the performance." },
 
   { name:"Cypress & Grapevine", house:"Jo Malone London", type:"Cologne Intense", size:"100ml",
     top:"Cypress", middle:"Grapevine (cedar, vetiver)", base:"Amber",
-    price:"$200", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$200", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"From the richer Cologne Intense line, it's described as a clean, soapy-woody 'luxe barbershop' — resinous cypress and a cedar/vetiver-laced grapevine over warm amber. Critics call it sophisticated, dry and earthy, with noticeably better depth and longevity than the standard colognes, if a little austere.",
     user:"Wearers who want Jo Malone with staying power are pleased — many report 6+ hours and a comforting, grown-up woody warmth. Some find it quieter or more linear than expected, and a few wish the grape facet read more clearly." },
 
   { name:"Lime Basil & Mandarin", house:"Jo Malone London", type:"Cologne", size:"100ml",
     top:"Lime, Mandarin, Bergamot", middle:"Basil, Lilac, Iris, Thyme", base:"Patchouli, Vetiver",
-    price:"$165", retailer:"Jo Malone", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$165", retailer:"Jo Malone", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"The house's signature debut (1999) and an enduring benchmark — a zesty lime-and-mandarin citrus given a sophisticated twist by peppery basil and thyme over light patchouli/vetiver. Critics regard it as a timeless, elegant, genuinely unisex modern classic.",
     user:"Beloved for being crisp, fresh and refined without feeling generic, and often cited as one of the better-lasting/projecting scents in the line. Detractors still find the colognes overpriced for the concentration, but affection for the scent itself runs high." },
 
   { name:"Silver Mountain Water", house:"Creed", type:"Eau de Parfum", size:"100ml",
     top:"Bergamot, Mandarin", middle:"Green Tea, Blackcurrant", base:"Musk, Petitgrain, Sandalwood, Galbanum",
-    price:"$200", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$200", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"A landmark fresh fragrance — a luminous bergamot/mandarin top, a distinctive green-tea-and-blackcurrant heart and a clean musk/sandalwood base that reads like cool alpine air. Critics celebrate its airy 'clean luxury' signature and influence, while flagging soft projection and modest longevity.",
     user:"Owners describe it as serene, smooth and effortlessly classy — a refined daytime/office fresh. The near-universal caveat is weak performance for the price (often 3–5 hours), and batch variation is a recurring topic." },
 
   { name:"Green Irish Tweed", house:"Creed", type:"Eau de Parfum", size:"100ml",
     top:"Lemon Verbena (Vervain), Bergamot", middle:"Violet Leaf, Geranium", base:"Ambergris, Sandalwood",
-    price:"$260", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$260", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"An icon of the green/fresh-fougère genre — sparkling lemon-verbena and bergamot over a powdery violet-leaf heart and a salty, effervescent ambergris-sandalwood base. Critics treat it as a timeless reference scent, tempered only by famously soft longevity and a high price.",
     user:"Revered as elegant, versatile and 'always appropriate,' with the violet-leaf/ambergris drydown a particular favorite. The constant refrains: it doesn't last (often 3–4 hours), it's expensive, and many cheaper scents come close." },
 
   { name:"Noble VII Queen Anne Rock Rose", house:"Clive Christian", type:"Parfum", size:"50ml",
     top:"Bergamot, Neroli, Black Pepper", middle:"Lavender, Clary Sage, Violet, Labdanum", base:"Cacao, Vetiver, Amber, Patchouli",
-    price:"$350", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$350", retailer:"Jomashop", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"A refined spicy-floral / oriental-fougère at full parfum strength — a peppered bergamot-neroli opening, an aromatic lavender-clary sage-violet heart and a labdanum, cacao and amber base. Critics praise its classy, room-filling elegance and quality, noting projection/longevity that can run merely 'good' for the lofty price.",
     user:"Owners call it sophisticated, smooth and distinctly 'expensive-smelling,' well suited to formal wear. The main grumbles are inconsistent performance for a parfum and, above all, the price — most advise buying only at a steep discount." },
 
   { name:"Aqua Universalis Cologne forte", house:"Maison Francis Kurkdjian", type:"Eau de Parfum", size:"70ml",
     top:"Bergamot", middle:"Sweet Pea, Mock Orange", base:"White Musk",
-    price:"$155", retailer:"Maison Francis Kurkdjian", pricedate:"Jun 2026", rating:"", date:"", notes:"",
+    price:"$155", retailer:"Maison Francis Kurkdjian", pricedate:"Jun 2026", rating:"", date:"", nils:"",
     critic:"The 'forte' (EDP) take on MFK's pristine clean-skin signature — bright bergamot wrapped in diaphanous white florals (mock orange, sweet pea) over soft white musk. Critics describe it as immaculately clean and elegant, the closest thing to 'smelling like clean water and light,' with better tenacity than the lighter EDT.",
-    user:"Fans love it as a fresh, soft, universally flattering signature — clean without being boring and ideal for warm weather. The pushback: some find it too simple/'soap-and-water' for the price, and a few catch a faint laundry-musk vibe." }
+    user:"Fans love it as a fresh, soft, universally flattering signature — clean without being boring and ideal for warm weather. The pushback: some find it too simple/'soap-and-water' for the price, and a few catch a faint laundry-musk vibe." },
+
+  { name:"Sel Marin", house:"Heeley", type:"Eau de Parfum", size:"100ml",
+    top:"Lemon, Bergamot, Green Notes", middle:"Sea Water, Salt, Seagrass, Moss", base:"Cedar, Musk, Leather",
+    price:"$185", retailer:"Luckyscent", pricedate:"Jun 2026", rating:"", date:"", nils:"",
+    critic:"Critics hold it up as one of the most convincing minimalist marine scents — a bright lemon-bergamot-and-salt opening over a dry accord of seagrass, moss, cedar and saline musk that captures actual seaside air rather than the usual 'blue' cliché. Praised as authentic, transparent and elegant, if intentionally understated.",
+    user:"Aquatic lovers prize it as the real-deal salty-skin scent — natural, fresh and unisex, a favourite for summer and the beach. The usual caveat is performance: many find it soft and close to the skin with modest longevity, which suits its airy character but frustrates those wanting projection." },
+
+  { name:"Acqua di Gio Profondo", house:"Giorgio Armani", type:"Eau de Parfum", size:"125ml",
+    top:"Sea Notes, Aquozone, Bergamot, Green Mandarin", middle:"Rosemary, Lavender, Cypress, Mastic", base:"Mineral Notes, Musk, Patchouli, Amber",
+    price:"$92", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", nils:"",
+    critic:"Critics read Profondo as a darker, more aquatic-aromatic evolution of the Acqua di Gio DNA — a cool marine/ozonic top sharpened by rosemary, lavender and cypress over a mineral, musky, lightly ambered base. Generally well-regarded as a versatile, modern, sophisticated blue fragrance with good performance, though a few find it a touch synthetic or clean-soapy.",
+    user:"A popular, easy-to-wear daily blue that wears clean and slightly herbal; fans cite solid longevity and broad appeal. Detractors feel it's a safe, familiar take on the genre, but most consider it a reliable everyday workhorse with strong value at discounter prices." },
+
+  { name:"Replica Sailing Day", house:"Maison Margiela", type:"Eau de Toilette", size:"100ml",
+    top:"Sea Notes, Aldehydes, Coriander, Red Pepper", middle:"Juniper, Iris, Amyl Salicylate, Rose", base:"Seaweed, Ambergris, Cedar, Amberwood",
+    price:"$125", retailer:"FragranceNet", pricedate:"Jun 2026", rating:"", date:"", nils:"",
+    critic:"Critics describe it as a clean, breezy nautical scent — salty sea-spray and aldehydic brightness over juniper and a touch of iris, settling into a woody ambergris-and-seaweed base that evokes wind and open water. Liked for its fresh, airy realism and unisex wearability, though noted as fairly linear and light.",
+    user:"Wearers enjoy it as a crisp, salty summer fragrance that's effortless and clean. The most common complaint is longevity — several report it fading quickly — so it's often called a lovely but fleeting 'spritz-and-respritz' beach scent." },
+
+  { name:"Imagination", house:"Louis Vuitton", type:"Eau de Parfum", size:"100ml",
+    top:"Citron, Calabrian Bergamot, Sicilian Orange", middle:"Tunisian Neroli, Nigerian Ginger, Ceylon Cinnamon", base:"Black Tea, Ambroxan, Guaiac Wood, Olibanum",
+    price:"$280", retailer:"Louis Vuitton", pricedate:"Jun 2026", rating:"", date:"", nils:"",
+    critic:"Critics rank it among the standout modern fresh designer-luxe scents — a sparkling citron-bergamot-orange opening lifted by neroli and ginger and grounded by a smooth black-tea, ambroxan and woody base. Widely praised as bright, elegant, extremely versatile and compliment-getting, the main reservation being its luxury price.",
+    user:"Hugely popular as a crowd-pleasing, 'smells expensive' fresh signature; many report strong projection, good longevity and constant compliments. The near-universal gripe is value — wearers love the scent but balk at the price and LV-only availability, noting cheaper fragrances land in similar territory." }
 ];
 
 let DATA = [];
@@ -599,7 +627,7 @@ function rowsToObjects(rows){
     const obj = { name:get("name"), house:get("house"), type:get("type"), size:get("size"), top:get("top"),
       middle:get("middle"), base:get("base"), rating:get("rating"), price:get("price"),
       retailer:get("retailer"), pricedate:get("pricedate"), critic:get("critic"), user:get("user"),
-      date:get("date"), notes:get("notes") };
+      date:get("date"), nils:get("nils") };
     if (!obj.name && !obj.house) continue;
     out.push(obj);
   }
@@ -730,12 +758,15 @@ function cardHtml(d, q, scope, accentIdx){
         tier('t-top','Top', d.top, 'top') +
         tier('t-heart','Heart', d.middle, 'middle') +
         tier('t-base','Base', d.base, 'base') + '</div>' : '') +
-    ((d.critic||d.user) ? '<div class="reviews">' +
+    '<div class="reviews">' +
         review('r-critic','Critics’ take', d.critic) +
-        review('r-user','What wearers say', d.user) + '</div>' : '') +
+        review('r-user','What wearers say', d.user) +
+        '<div class="review r-nils"><span class="rlabel">What Nils says</span>' +
+          (d.nils ? '<p>'+escapeHtml(d.nils)+'</p>' : '<p class="nils-placeholder">My impressions coming soon…</p>') +
+        '</div>' +
+    '</div>' +
     priceRow +
     (facts.length ? '<div class="facts">' + facts.map(f => '<div class="fact"><span class="k">'+f[0]+'</span><span class="v">'+f[1]+'</span></div>').join("") + '</div>' : '') +
-    (d.notes ? '<p class="personal-note">' + escapeHtml(d.notes) + '</p>' : '') +
   '</article>';
 }
 
